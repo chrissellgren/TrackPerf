@@ -1,0 +1,3 @@
+[submodule "packages/TrackPerf"]
+	path = packages/TrackPerf
+	url = https://github.com/njbruhwiler/TrackPerf.git
