@@ -37,6 +37,10 @@ public:
    */
   virtual void processEvent( LCEvent * evt ) ; 
 
+  /** Sub-functions of processEvent, seperated for readability if no tracking enabled*/
+  virtual void processEventTrackerHits( LCEvent * evt);
+  virtual void processEventTracks( LCEvent * evt );
+
   virtual void check( LCEvent * evt ) ; 
 
   /** Called after data processing for clean up.
@@ -71,6 +75,9 @@ private:
 
   //! Determination of good vs bad match
   float _matchProb = 0.5;
+
+  // Determine whether tracking output collections should be included
+  //bool _trackingOn = true;
   
   //! Histograms
   std::shared_ptr<TrackPerf::TrackHists> _allTracks ;
@@ -81,7 +88,8 @@ private:
   std::shared_ptr<TrackPerf::TruthHists> _unmtTruths;
   std::shared_ptr<TrackPerf::TrackResoHists> _realReso;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties;
-  std::shared_ptr<TrackPerf::ClusterHists> _clusters;
+  std::shared_ptr<TrackPerf::ClusterHists> _clusters_vb;
+  std::shared_ptr<TrackPerf::ClusterHists> _clusters_ib;
 
   TH1 * h_number_of_fakes;
   TH1 * h_number_of_tracks;

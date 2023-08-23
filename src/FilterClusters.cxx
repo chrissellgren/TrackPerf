@@ -94,23 +94,24 @@ void FilterClusters::processEvent( LCEvent * evt )
 
   if( InTrackerHitCollection->getTypeName() != lcio::LCIO::TRACKERHITPLANE )
     { throw EVENT::Exception( "Invalid collection type: " + InTrackerHitCollection->getTypeName() ) ; }
-
   if( InRelationCollection->getTypeName() != lcio::LCIO::LCRELATION )
     { throw EVENT::Exception( "Invalid collection type: " + InRelationCollection->getTypeName() ) ; }
 
-
+  streamlog_out(DEBUG0) << "Number of Elements in VB Tracker Hits Collection: " << InTrackerHitCollection->getNumberOfElements() <<std::endl;
   // Filter
-  for(int i=0; i<InTrackerHitCollection->getNumberOfElements(); ++i)
+  for(int i=0; i<InTrackerHitCollection->getNumberOfElements(); ++i) //loop through all hits
     {
-      EVENT::TrackerHit *trkhit=static_cast<EVENT::TrackerHit*>(InTrackerHitCollection->getElementAt(i));
+      streamlog_out(DEBUG0) << "Loop over hits opened. \n";
+      EVENT::TrackerHit *trkhit=static_cast<EVENT::TrackerHit*>(InTrackerHitCollection->getElementAt(i)); //define trkhit var, pointer to i'th element of tracker hits
       EVENT::LCRelation *rel=static_cast<EVENT::LCRelation*>(InRelationCollection->getElementAt(i));
-
+      
       //Calculating theta 
       float x = trkhit->getPosition()[0];
       float y = trkhit->getPosition()[1];
       float z = trkhit->getPosition()[2];
       float r = sqrt(pow(x,2)+pow(y,2));
-      float incidentTheta = std::atan(r/z);
+      float incidentTheta = std::atan(r/z); 
+
       if(incidentTheta<0)
         incidentTheta += M_PI;
 
@@ -143,13 +144,15 @@ void FilterClusters::processEvent( LCEvent * evt )
           filter_layer = true;
         }
       }
+      streamlog_out(DEBUG0) << "Filter layer: " << filter_layer << std::endl;
       
       for (int i=0; i<_ThetaRanges.size()-1; ++i) {
         streamlog_out( DEBUG0 ) << "theta: " << incidentTheta << std::endl;
         float min = std::stof(_ThetaRanges[i]);
         float max = std::stof(_ThetaRanges[i+1]);
         streamlog_out( DEBUG0 ) << "theta range: " << min << ", " << max << std::endl;
-        if(incidentTheta > min and incidentTheta <= max and filter_layer){
+
+        if(incidentTheta > min and incidentTheta <= max and not filter_layer){
           streamlog_out( DEBUG0 ) << "theta in range" << std::endl;
           streamlog_out( DEBUG0 ) << "cluster size cut off: " << _ClusterSize[i] << std::endl;
           streamlog_out( DEBUG0 ) << "cluster size: " << cluster_size << std::endl;
@@ -157,20 +160,12 @@ void FilterClusters::processEvent( LCEvent * evt )
             streamlog_out( DEBUG0 ) << "cluster added" << std::endl;
             OutTrackerHitCollection->addElement(trkhit); 
             OutRelationCollection->addElement(rel); }
-          else {
-            streamlog_out( DEBUG0 ) << "cluster rejected" << std::endl;
           }
-        }
-        if(not filter_layer){
-          OutTrackerHitCollection->addElement(trkhit); 
-          OutRelationCollection->addElement(rel); 
-        }
         else{
-          streamlog_out( DEBUG0 ) << "theta out of range" << std::endl;
+          streamlog_out( DEBUG0 ) << "theta out of range or layer filtered" << std::endl;
+        }
         }
       }
-    }
-
   // Save output track collection
   evt->addCollection(OutTrackerHitCollection, _OutTrackerHitCollection); 
   evt->addCollection(OutRelationCollection, _OutRelationCollection); 
