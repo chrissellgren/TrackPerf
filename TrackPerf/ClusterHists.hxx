@@ -28,7 +28,9 @@ namespace TrackPerf
     void fill(const EVENT::TrackerHit* trkhit);
 
   private:
-    TH2* h_size_theta;
+    TH2* h_size_theta_y;
+    TH2* h_size_theta_x;
+    TH2* h_size_theta_tot;
     TH2* h_cluster_pos;
     TH2* h_cluster_pos_0;
     TH2* h_cluster_pos_1;
@@ -36,8 +38,9 @@ namespace TrackPerf
     TH2* h_cluster_pos_3;
     TH1* hits_by_layer;
     TH1* h_theta;
-    TH1* h_edep_0deg;
-    TH1* h_edep_90deg;
+    TH1* h_edep;
+    /*TH1* h_edep_0deg;
+    TH1* h_edep_90deg; */
     // positions
     TH1* h_x;
     TH1* h_y;

@@ -69,28 +69,38 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
 
   //Calculating cluster size
   const lcio::LCObjectVec &rawHits = trkhit->getRawHits(); 
-  float max = -1000000;
-  float min = 1000000; 
+  float ymax, xmax = -1000000;
+  float ymin, xmin = 1000000; 
 
   float loopsize = rawHits.size();
-  streamlog_out(DEBUG6) << "the size of rawhits is " << loopsize << std::endl;
+  streamlog_out(DEBUG3) << "Number of raw hits: " << loopsize << std::endl;
 
   for (size_t j=0; j<loopsize; ++j) {
     lcio::SimTrackerHit *hitConstituent = dynamic_cast<lcio::SimTrackerHit*>( rawHits[j] );
     const double *localPos = hitConstituent->getPosition();
     float x_local = localPos[0];
     float y_local = localPos[1];
-    streamlog_out(DEBUG6) << "y_local is: " << y_local << std::endl;
-    if (y_local < min){
-      min = y_local;
+    streamlog_out(DEBUG6) << "Local y: " << y_local << ", local x: " << x_local << std::endl;
+    if (y_local < ymin){
+      ymin = y_local;
       }
-    else if (y_local > max){
-      max = y_local;          
+    else if (y_local > ymax){
+      ymax = y_local;          
       } 
+    if (x_local < xmin){
+      xmin = x_local;
+      }
+    else if (x_local > xmax){
+      xmax = x_local;          
+      }
     }
-  streamlog_out(DEBUG6) << "the value of min and max are: " << min  << " and " << max << std::endl;
-  float cluster_size = (max - min)+1;
-  streamlog_out(DEBUG6) << "the value of cluster size is " << cluster_size << std::endl;
+  streamlog_out(DEBUG2) << "Min y pos: " << ymin  << ", max y pos: " << ymax << std::endl;
+  streamlog_out(DEBUG2) << "Min x pos: " << xmin  << ", max x pos: " << xmax << std::endl;
+  float cluster_size_y = (ymax - ymin)+1;
+  float cluster_size_x = (xmax - xmin)+1;
+  float cluster_size_tot = cluster_size_y + cluster_size_x;
+  streamlog_out(DEBUG6) << "Cluster size, y direction (parallel to beam line for barrel, radial dir for endcap) " << cluster_size_y << std::endl;
+  streamlog_out(DEBUG6) << "Cluster size, x direction (parallel to beam line in ladder plane for barrel, phi dir for endcap) " << cluster_size_x << std::endl;
 
   //Get hit subdetector/layer 
   std::string _encoderString = lcio::LCTrackerCellID::encoding_string();
@@ -98,14 +108,15 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   uint32_t systemID = decoder(trkhit)["system"];
   uint32_t layerID = decoder(trkhit)["layer"];
   streamlog_out(DEBUG9) << "Layer ID is: " << layerID << std::endl;
-  // shift layer by 0.5 to resolve binning issue
-  double layerID_adjusted = layerID + 0.5;
 
   // Fill for all hits
-  h_size_theta->Fill(incidentTheta, cluster_size);
+  h_size_theta_y->Fill(incidentTheta, cluster_size_y);
+  h_size_theta_x->Fill(incidentTheta, cluster_size_x);
+  h_size_theta_tot->Fill(incidentTheta, cluster_size_tot);
+
   h_theta->Fill(incidentTheta);
   h_cluster_pos->Fill(z,r);
-  hits_by_layer->Fill(layerID_adjusted);
+  hits_by_layer->Fill(layerID);
   // tracker hit hists
   h_x->Fill(x);  
   h_y->Fill(y);  
@@ -121,14 +132,17 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   h_z_r_vx->Fill(z,r);
   h_x_y_vx->Fill(x,y);
 
+  h_edep->Fill(EDep);
+
+
   // Fill energy deposition histograms based on angle
-  float theta_deg = incidentTheta * (180/3.1416);
+  /*float theta_deg = incidentTheta * (180/3.1416);
   if(theta_deg < 5 || theta_deg > 175){
     h_edep_0deg->Fill(EDep);
   }
   if(theta_deg > 89 && theta_deg < 91){
     h_edep_90deg->Fill(EDep);
-  }
+  } */
   
   // Fill based on which double layer region was hit
   if(layerID==0 or layerID==1){
