@@ -90,11 +90,15 @@ private:
   std::shared_ptr<TrackPerf::TruthHists> _unmtTruths;
   std::shared_ptr<TrackPerf::TrackResoHists> _realReso;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_vb;
+  std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ve;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ib;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ob;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_vb;
+  std::shared_ptr<TrackPerf::ClusterHists> _clusters_ve;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_ib;
+  std::shared_ptr<TrackPerf::ClusterHists> _clusters_ie;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_ob;
+  std::shared_ptr<TrackPerf::ClusterHists> _clusters_oe;
 
   TH1 * h_number_of_fakes;
   TH1 * h_number_of_tracks;
