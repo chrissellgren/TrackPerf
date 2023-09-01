@@ -119,6 +119,27 @@ TrackPerfHistProc::TrackPerfHistProc()
 			   _OBRelationCollection,
 		     _OBRelationCollection
 		 	    );
+
+    registerInputCollection( LCIO::LCRELATION,
+		     "VERelationCollection" ,
+			   "Name of the input vertex endcap relation collection",
+			   _VERelationCollection,
+		     _VERelationCollection
+		 	    );
+
+    registerInputCollection( LCIO::LCRELATION,
+		     "IERelationCollection" ,
+			   "Name of the input inner tracker endcap relation collection",
+			   _IERelationCollection,
+		     _IERelationCollection
+		 	    );
+
+    registerInputCollection( LCIO::LCRELATION,
+		     "OERelationCollection" ,
+			   "Name of the input outer tracker endcap relation collection",
+			   _OERelationCollection,
+		     _OERelationCollection
+		 	    );
 }
 
 void TrackPerfHistProc::init()
@@ -166,7 +187,7 @@ void TrackPerfHistProc::init()
     tree->mkdir("../clusters" ); tree->cd("../clusters" );
     _clusters_ve=std::make_shared<TrackPerf::ClusterHists>();
 
-  tree->mkdir("../clusters_ob" ); tree->cd("../clusters_ob" );
+  tree->mkdir("../../clusters_ob" ); tree->cd("../clusters_ob" );
     tree->mkdir("uncertainty" ); tree->cd("uncertainty" );
     _uncertainties_ve=std::make_shared<TrackPerf::TrackerHitResoHists>();
     tree->mkdir("../clusters" ); tree->cd("../clusters" );
@@ -312,6 +333,9 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
   LCCollection* VBRelationCollection =evt->getCollection(_VBRelationCollection);
   LCCollection* IBRelationCollection =evt->getCollection(_IBRelationCollection);
   LCCollection* OBRelationCollection =evt->getCollection(_OBRelationCollection);
+  LCCollection* VERelationCollection =evt->getCollection(_VERelationCollection);
+  LCCollection* IERelationCollection =evt->getCollection(_IERelationCollection);
+  LCCollection* OERelationCollection =evt->getCollection(_OERelationCollection);
 
   // get resolution histograms for vxb hits
   for(int i=0; i<VBRelationCollection->getNumberOfElements(); ++i)
@@ -328,7 +352,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
         std::cout << "- Trackhitplane: " << trkhitplane << std::endl;
         continue;
       }
-      _uncertainties_vb->fill(trkhit,simtrkhit,trkhitplane);
+      //_uncertainties_vb->fill(trkhit,simtrkhit,trkhitplane);
     }
 
   // get resolution histograms for vxe hits
@@ -364,7 +388,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
         std::cout << "- Trackhitplane: " << trkhitplane << std::endl;
         continue;
       }
-      _uncertainties_ib->fill(trkhit,simtrkhit,trkhitplane);
+      //_uncertainties_ib->fill(trkhit,simtrkhit,trkhitplane);
     }
 
   // resolution hists for outer tracker hits
@@ -382,7 +406,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
         std::cout << "- Trackhitplane: " << trkhitplane << std::endl;
         continue;
       }
-      _uncertainties_ob->fill(trkhit,simtrkhit,trkhitplane);
+      //_uncertainties_ob->fill(trkhit,simtrkhit,trkhitplane);
     }
   
   // vertex barrel tracker hits

@@ -74,6 +74,9 @@ private:
   std::string _VBRelationCollection {};
   std::string _IBRelationCollection {};
   std::string _OBRelationCollection {};
+  std::string _VERelationCollection {};
+  std::string _IERelationCollection {};
+  std::string _OERelationCollection {};
 
   //! Determination of good vs bad match
   float _matchProb = 0.5;

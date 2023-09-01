@@ -11,7 +11,9 @@ using namespace TrackPerf;
 
 ClusterHists::ClusterHists()
 {
-  h_size_theta    = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_y    = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_x    = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_tot  = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
   h_cluster_pos   = new TH2F("cluster_position"      , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_0 = new TH2F("cluster_position_0"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_1 = new TH2F("cluster_position_1"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
@@ -19,8 +21,7 @@ ClusterHists::ClusterHists()
   h_cluster_pos_3 = new TH2F("cluster_position_3"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   hits_by_layer   = new TH1F("numhits_by_layer"      , ";Layer Index; Number of Clusters",8,0,8);
   h_theta         = new TH1F("theta"                 , ";Theta;Number of Clusters"       ,100,0,3.15);
-  h_edep_0deg     = new TH1F("edep_0to5deg"          , ";Energy Deposited (GeV);Clusters" ,100,0,0.0005);
-  h_edep_90deg    = new TH1F("edep_89to91deg"        , ";Energy Deposited (GeV);Clusters",100,0,0.0005);
+  h_edep     = new TH1F("edep"          , ";Energy Deposited (GeV);Clusters" ,100,0,0.0005);
 
   // Create position histograms for tracker hits
   int numbins_all = 1000;
@@ -69,8 +70,10 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
 
   //Calculating cluster size
   const lcio::LCObjectVec &rawHits = trkhit->getRawHits(); 
-  float ymax, xmax = -1000000;
-  float ymin, xmin = 1000000; 
+  float ymax = -1000000;
+  float xmax = -1000000;
+  float ymin =  1000000; 
+  float xmin =  1000000; 
 
   float loopsize = rawHits.size();
   streamlog_out(DEBUG3) << "Number of raw hits: " << loopsize << std::endl;
@@ -87,6 +90,7 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
     else if (y_local > ymax){
       ymax = y_local;          
       } 
+
     if (x_local < xmin){
       xmin = x_local;
       }
@@ -101,6 +105,12 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   float cluster_size_tot = cluster_size_y + cluster_size_x;
   streamlog_out(DEBUG6) << "Cluster size, y direction (parallel to beam line for barrel, radial dir for endcap) " << cluster_size_y << std::endl;
   streamlog_out(DEBUG6) << "Cluster size, x direction (parallel to beam line in ladder plane for barrel, phi dir for endcap) " << cluster_size_x << std::endl;
+
+  if (cluster_size_y < 1) {
+    streamlog_out(WARNING) << "Cluster calculated y size less than 1. Skip cluster." << std::endl;
+    std::stringstream err  ; err << " Cluster calculation failed.";
+    throw EVENT::Exception ( err.str() );
+  }
 
   //Get hit subdetector/layer 
   std::string _encoderString = lcio::LCTrackerCellID::encoding_string();
