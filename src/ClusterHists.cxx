@@ -11,9 +11,9 @@ using namespace TrackPerf;
 
 ClusterHists::ClusterHists()
 {
-  h_size_theta_y    = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
-  h_size_theta_x    = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
-  h_size_theta_tot  = new TH2F("cluster_size_vs_theta" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_y    = new TH2F("cluster_size_vs_theta_y" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_x    = new TH2F("cluster_size_vs_theta_x" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_tot  = new TH2F("cluster_size_vs_theta_tot" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
   h_cluster_pos   = new TH2F("cluster_position"      , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_0 = new TH2F("cluster_position_0"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_1 = new TH2F("cluster_position_1"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
@@ -61,11 +61,10 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   float z = trkhit->getPosition()[2];
   float r = sqrt(pow(x,2)+pow(y,2));
   float incidentTheta = std::atan(r/z);
-  streamlog_out(DEBUG6) << "theta before negative correction: " << incidentTheta << std::endl;
 
   if(incidentTheta<0)
     incidentTheta += M_PI;
-  streamlog_out(DEBUG6) << "the value of theta is " << incidentTheta << std::endl;
+  streamlog_out(DEBUG6) << "Theta: " << incidentTheta << std::endl;
 
 
   //Calculating cluster size
@@ -87,30 +86,32 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
     if (y_local < ymin){
       ymin = y_local;
       }
-    else if (y_local > ymax){
+    if (y_local > ymax){
       ymax = y_local;          
       } 
 
     if (x_local < xmin){
       xmin = x_local;
       }
-    else if (x_local > xmax){
-      xmax = x_local;          
+    if (x_local > xmax){
+      xmax = x_local;
+      //streamlog_out(DEBUG2) << "Updated ymin: " << ymin << ", xmin: " << xmin << std::endl;
+      //streamlog_out(DEBUG2) << "Updated ymax: " << ymax << ", xmax: " << xmax << std::endl;          
       }
     }
   streamlog_out(DEBUG2) << "Min y pos: " << ymin  << ", max y pos: " << ymax << std::endl;
   streamlog_out(DEBUG2) << "Min x pos: " << xmin  << ", max x pos: " << xmax << std::endl;
   float cluster_size_y = (ymax - ymin)+1;
   float cluster_size_x = (xmax - xmin)+1;
-  float cluster_size_tot = cluster_size_y + cluster_size_x;
+  float cluster_size_tot = loopsize;
   streamlog_out(DEBUG6) << "Cluster size, y direction (parallel to beam line for barrel, radial dir for endcap) " << cluster_size_y << std::endl;
   streamlog_out(DEBUG6) << "Cluster size, x direction (parallel to beam line in ladder plane for barrel, phi dir for endcap) " << cluster_size_x << std::endl;
-
-  if (cluster_size_y < 1) {
+  streamlog_out(DEBUG6) << "Cluster size, TOTAL " << cluster_size_tot << std::endl;
+  /* if (cluster_size_y < 1) {
     streamlog_out(WARNING) << "Cluster calculated y size less than 1. Skip cluster." << std::endl;
     std::stringstream err  ; err << " Cluster calculation failed.";
     throw EVENT::Exception ( err.str() );
-  }
+  } */
 
   //Get hit subdetector/layer 
   std::string _encoderString = lcio::LCTrackerCellID::encoding_string();
