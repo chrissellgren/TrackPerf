@@ -12,16 +12,19 @@ TrackerHitResoHists::TrackerHitResoHists()
 {
   h_x_pull = new TH1F("x_pull", ";(x_{reco} - x_{truth})/#sigma_{x}; Hits" , 50, -2, 2); 
   h_y_pull = new TH1F("y_pull", ";(y_{reco} - y_{truth})/#sigma_{y}; Hits" , 50, -2, 2); 
-
-  h_dx = new TH1F("dx", ";(x_{reco} - x_{truth}); Hits" , 50, -20, 20); 
-  h_dy = new TH1F("dy", ";(y_{reco} - y_{truth})/#sigma_{y}; Hits" , 50, -20, 20);
-  h_dz = new TH1F("dz", ";(z_{reco} - z_{truth}); Hits" , 100, -20, 20);
-  h_dr = new TH1F("dr", ";(r_{reco} - r_{truth}); Hits" , 100, -20, 20); // r = sqrt(dx^2+dy^2+dz^2)
-  
+  // large range histograms for debugging bad reconstruction
+  h_dx_wide = new TH1F("dx_wide", ";(x_{reco} - x_{truth}) (mm); Hits" , 100, -20, 20); 
+  h_dy_wide = new TH1F("dy_wide", ";(y_{reco} - y_{truth}) (mm); Hits" , 100, -20, 20);
+  h_dz_wide = new TH1F("dz_wide", ";(z_{reco} - z_{truth}) (mm); Hits" , 100, -20, 20);
+  // absolute position difference
+  h_dx = new TH1F("dx", ";(x_{reco} - x_{truth}) (mm); Hits" , 100, -0.002, 0.002); 
+  h_dy = new TH1F("dy", ";(y_{reco} - y_{truth}) (mm); Hits" , 100, -0.002, 0.002);
+  h_dz = new TH1F("dz", ";(z_{reco} - z_{truth}) (mm); Hits" , 100, -0.002, 0.002);
+  h_dr = new TH1F("dr", ";(r_{reco} - r_{truth}) (mm); Hits" , 100, -20, 20); // r = sqrt(dx^2+dy^2+dz^2)
+  // uncertainties
   h_cov_x  = new TH1F("cov_x" , ";X variance; Hits"                        , 50, 0, 0.01);
   h_cov_y  = new TH1F("cov_y" , ";Y variance; Hits"                        , 50, 0, 0.01);
   h_cov_r  = new TH1F("cov_r" , ";r variance; Hits"                        , 50, 0, 0.01);
-
 }
 
 void TrackerHitResoHists::fill(const EVENT::TrackerHit* trkhit, const EVENT::SimTrackerHit* simtrkhit, IMPL::TrackerHitPlaneImpl* trkhitplane)
@@ -41,7 +44,7 @@ void TrackerHitResoHists::fill(const EVENT::TrackerHit* trkhit, const EVENT::Sim
         
   float x_truth = simtrkhit->getPosition()[0];
   float y_truth = simtrkhit->getPosition()[1];
-  float z_truth = simtrkhit->getPosition()[1];
+  float z_truth = simtrkhit->getPosition()[2];
 
   if(x_reco-x_truth==0){
     streamlog_out(DEBUG3) << "x truth = x_reco" << std::endl;

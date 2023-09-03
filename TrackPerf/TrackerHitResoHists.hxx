@@ -31,6 +31,9 @@ namespace TrackPerf
   private:
     TH1* h_x_pull;
     TH1* h_y_pull;
+    TH1* h_dx_wide;
+    TH1* h_dy_wide;
+    TH1* h_dz_wide;
     TH1* h_dx;
     TH1* h_dy;
     TH1* h_dz;
