@@ -26,9 +26,14 @@ FilterClusters::FilterClusters()
   _description = "FilterClusters processor filters a collection of tracker hits based on cluster size and outputs a filtered collection";
 
   // register steering parameters: name, description, class-variable, default value
-  registerProcessorParameter("ThetaRanges",
-         "Divide theta into bins for different cluster size cuts",
-         _ThetaRanges, 
+  registerProcessorParameter("InputRanges",
+         "Divide theta or r into bins for different cluster size cuts",
+         _InputRanges, 
+         {}
+          );
+  registerProcessorParameter("DetectorType",
+         "Indicate if working with barrel or endcap geometry",
+         _DetectorType, 
          {}
           );
   registerProcessorParameter("ClusterSize",
@@ -82,6 +87,10 @@ void FilterClusters::processRunHeader( LCRunHeader* /*run*/)
 
 void FilterClusters::processEvent( LCEvent * evt )
 {
+  // Determine if handling endcap or barrel
+  if (_DetectorType == "Barrel") isBarrel=true;
+  else isBarrel=false;
+
   // Make the output track collection
   LCCollectionVec *OutTrackerHitCollection = new LCCollectionVec(LCIO::TRACKERHIT);
   OutTrackerHitCollection->setSubset(true);
@@ -97,12 +106,10 @@ void FilterClusters::processEvent( LCEvent * evt )
   if( InRelationCollection->getTypeName() != lcio::LCIO::LCRELATION )
     { throw EVENT::Exception( "Invalid collection type: " + InRelationCollection->getTypeName() ) ; }
 
-  streamlog_out(DEBUG0) << "Number of Elements in VB Tracker Hits Collection: " << InTrackerHitCollection->getNumberOfElements() <<std::endl;
   // Filter
   for(int i=0; i<InTrackerHitCollection->getNumberOfElements(); ++i) //loop through all hits
     {
-      streamlog_out(DEBUG0) << "Loop over hits opened. \n";
-      EVENT::TrackerHit *trkhit=static_cast<EVENT::TrackerHit*>(InTrackerHitCollection->getElementAt(i)); //define trkhit var, pointer to i'th element of tracker hits
+      EVENT::TrackerHit *trkhit=static_cast<EVENT::TrackerHit*>(InTrackerHitCollection->getElementAt(i));
       EVENT::LCRelation *rel=static_cast<EVENT::LCRelation*>(InRelationCollection->getElementAt(i));
       
       //Calculating theta 
@@ -116,22 +123,42 @@ void FilterClusters::processEvent( LCEvent * evt )
         incidentTheta += M_PI;
 
       //Calculating cluster size
-      const lcio::LCObjectVec &rawHits = trkhit->getRawHits();
-      float max = -1000000;
-      float min = 1000000;
-      for (size_t j=0; j<rawHits.size(); ++j) {
+      const lcio::LCObjectVec &rawHits = trkhit->getRawHits(); 
+      float ymax = -1000000;
+      float xmax = -1000000;
+      float ymin =  1000000; 
+      float xmin =  1000000; 
+
+      float loopsize = rawHits.size();
+      streamlog_out(DEBUG3) << "Number of raw hits: " << loopsize << std::endl;
+
+      for (size_t j=0; j<loopsize; ++j) {
         lcio::SimTrackerHit *hitConstituent = dynamic_cast<lcio::SimTrackerHit*>( rawHits[j] );
         const double *localPos = hitConstituent->getPosition();
-        x = localPos[0];
-        y = localPos[1];
-        if (y < min){
-          min = y;
+        float x_local = localPos[0];
+        float y_local = localPos[1];
+        streamlog_out(DEBUG6) << "Local y: " << y_local << ", local x: " << x_local << std::endl;
+        if (y_local < ymin){
+          ymin = y_local;
+          }
+        if (y_local > ymax){
+          ymax = y_local;          
+          } 
+
+        if (x_local < xmin){
+          xmin = x_local;
+          }
+        if (x_local > xmax){
+          xmax = x_local;
+          //streamlog_out(DEBUG2) << "Updated ymin: " << ymin << ", xmin: " << xmin << std::endl;
+          //streamlog_out(DEBUG2) << "Updated ymax: " << ymax << ", xmax: " << xmax << std::endl;          
+          }
         }
-        else if (y > max){
-          max = y;          
-        }
-      }
-      float cluster_size = (max - min)+1;
+      streamlog_out(DEBUG2) << "Min y pos: " << ymin  << ", max y pos: " << ymax << std::endl;
+      streamlog_out(DEBUG2) << "Min x pos: " << xmin  << ", max x pos: " << xmax << std::endl;
+      float cluster_size_y = (ymax - ymin)+1;
+      float cluster_size_x = (xmax - xmin)+1;
+      float cluster_size_tot = loopsize;
 
       //Get hit subdetector/layer 
       std::string _encoderString = lcio::LCTrackerCellID::encoding_string();
@@ -144,31 +171,48 @@ void FilterClusters::processEvent( LCEvent * evt )
           filter_layer = true;
         }
       }
-      streamlog_out(DEBUG0) << "Filter layer: " << filter_layer << std::endl;
       
-      for (int i=0; i<_ThetaRanges.size()-1; ++i) {
-        streamlog_out( DEBUG0 ) << "theta: " << incidentTheta << std::endl;
-        float min = std::stof(_ThetaRanges[i]);
-        float max = std::stof(_ThetaRanges[i+1]);
-        streamlog_out( DEBUG0 ) << "theta range: " << min << ", " << max << std::endl;
-
-        if(incidentTheta > min and incidentTheta <= max and not filter_layer){
-          streamlog_out( DEBUG0 ) << "theta in range" << std::endl;
-          streamlog_out( DEBUG0 ) << "cluster size cut off: " << _ClusterSize[i] << std::endl;
-          streamlog_out( DEBUG0 ) << "cluster size: " << cluster_size << std::endl;
-          if(cluster_size < std::stof(_ClusterSize[i])) {
-            streamlog_out( DEBUG0 ) << "cluster added" << std::endl;
-            OutTrackerHitCollection->addElement(trkhit); 
-            OutRelationCollection->addElement(rel); }
-          }
-        else{
-          streamlog_out( DEBUG0 ) << "theta out of range or layer filtered" << std::endl;
+      // 
+      for (int i=0; i<_InputRanges.size()-1; ++i) {
+        float min = std::stof(_InputRanges[i]);
+        float max = std::stof(_InputRanges[i+1]);
+        streamlog_out( DEBUG0 ) << "Theta or R range: " << min << ", " << max << std::endl;
+        
+        if (isBarrel){
+          if(incidentTheta > min && incidentTheta <= max && !filter_layer){
+            //streamlog_out( DEBUG0 ) << "theta in range" << std::endl;
+            streamlog_out( DEBUG0 ) << "Cluster size cut off: " << _ClusterSize[i] << std::endl;
+            streamlog_out( DEBUG0 ) << "Current y-cluster size (parallel to beam axis) : " << cluster_size_y << std::endl;
+            if(cluster_size_y < std::stof(_ClusterSize[i])) {
+              streamlog_out( DEBUG0 ) << "Cluster passes cut, hit added to output collection" << std::endl;
+              OutTrackerHitCollection->addElement(trkhit); 
+              OutRelationCollection->addElement(rel); }
+            }
+        }
+        else {
+          if(r > min and r <= max and not filter_layer){
+            streamlog_out( DEBUG0 ) << "Cluster size cut off: " << _ClusterSize[i] << std::endl;
+            streamlog_out( DEBUG0 ) << "Current total cluster size: " << cluster_size_tot << std::endl;
+            if(cluster_size_tot < std::stof(_ClusterSize[i])) {
+              streamlog_out( DEBUG0 ) << "cluster added" << std::endl;
+              OutTrackerHitCollection->addElement(trkhit); 
+              OutRelationCollection->addElement(rel); }
+            }
         }
         }
+      
       }
   // Save output track collection
   evt->addCollection(OutTrackerHitCollection, _OutTrackerHitCollection); 
   evt->addCollection(OutRelationCollection, _OutRelationCollection); 
+
+  // Compare sizes of collections before/after filtering
+  int nInTrackerHits = InTrackerHitCollection->getNumberOfElements();
+  streamlog_out(MESSAGE) << "Number of Elements in Input VB Tracker Hits Collection: " << nInTrackerHits <<std::endl;
+  int nOutTrackerHits = OutTrackerHitCollection->getNumberOfElements();
+  streamlog_out(MESSAGE) << "Number of Elements in Output VB Tracker Hits Collection: " << nOutTrackerHits <<std::endl;
+  float retention = nOutTrackerHits/nInTrackerHits * 100;
+  streamlog_out(MESSAGE) << "Percentage of hits retained: " << retention <<std::endl;
 }
 
 void FilterClusters::end()
