@@ -1,4 +1,4 @@
-# include "TrackPerf/FilterClusters.hxx"
+#include "TrackPerf/FilterClusters.hxx"
 
 #include <math.h>
 
@@ -91,20 +91,22 @@ void FilterClusters::processRunHeader( LCRunHeader* /*run*/)
 { }
 
 // Function to split the input vector into chunks to specify cuts for each layer
-std::vector<std::string>* splitVector(const std::vector<std::string>& input, int numlayers, int originalLength) {
-    std::vector<std::string>* result = new std::vector<std::string>[numlayers];
+/*std::vector<std::vector<std::string>> splitVector(const std::vector<std::string>& input, int numlayers, int originalLength) {
+    std::vector<std::vector<std::string>> result;
     int startIndex = 0;
     int chunksize = originalLength / numlayers;
 
     // loop through all layers
     for (int i = 0; i < numlayers; i++) {
+        std::vector<std::string> chunk;
         for (int j = startIndex; j < startIndex + chunksize && j < input.size(); j++) {
-            result[i].push_back(input[j]);
+            chunk.push_back(input[j]);
         }
+        result.push_back(chunk);
         startIndex += chunksize;
     }
     return result;
-}
+} */
 
 void FilterClusters::processEvent( LCEvent * evt )
 {
@@ -132,12 +134,15 @@ void FilterClusters::processEvent( LCEvent * evt )
     std::stringstream err  ; err << " Could not determine sub-detector type for: " << _DetectorType;
     throw Exception ( err.str() );
   }
+  streamlog_out(DEBUG8) << "Number of layers found for this sub-det: " << numlayers << std::endl;
 
   if (! _FilterByLayer) numlayers = 1;
   int rangesize = _InputRanges.size();
   int clustersize = _ClusterSize.size();
-  splitInputRanges = splitVector(_InputRanges, numlayers, rangesize);
-  splitClusterCuts = splitVector(_ClusterSize, numlayers, clustersize);
+  splitInputRanges.push_back(_InputRanges);
+  splitClusterCuts.push_back(_ClusterSize);
+  //splitInputRanges = splitVector(_InputRanges, numlayers, rangesize);
+  //splitClusterCuts = splitVector(_ClusterSize, numlayers, clustersize);
     
   // Make the output track collection
   LCCollectionVec *OutTrackerHitCollection = new LCCollectionVec(LCIO::TRACKERHIT);
