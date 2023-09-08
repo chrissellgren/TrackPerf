@@ -32,8 +32,13 @@ FilterClusters::FilterClusters()
          {}
           );
   registerProcessorParameter("DetectorType",
-         "Indicate if working with barrel or endcap geometry",
+         "Indicate which geometry is being used",
          _DetectorType, 
+         {}
+          );
+  registerProcessorParameter("FilterByLayer",
+         "Indicate if filter should be uniform for each layer, or different ranges and cutoffs for each layer (double layer pair)",
+         _FilterByLayer, 
          {}
           );
   registerProcessorParameter("ClusterSize",
@@ -88,8 +93,37 @@ void FilterClusters::processRunHeader( LCRunHeader* /*run*/)
 void FilterClusters::processEvent( LCEvent * evt )
 {
   // Determine if handling endcap or barrel
-  if (_DetectorType == "Barrel") isBarrel=true;
-  else isBarrel=false;
+  if (_DetectorType.find("Barrel") != std::string::npos) {
+      isBarrel=true;
+    } else if (_DetectorType.find("Endcap") != std::string::npos) {
+      isBarrel=false;
+  } else {
+      std::stringstream err  ; err << " Could not determine sub-detector type for: " << _DetectorType;
+      throw Exception ( err.str() );
+    }
+  if (_DetectorType.find("Vertex") != std::string::npos) {
+      isVertex=true;
+      numlayers = 4;
+    } else if (_DetectorType.find("InnerTracker") != std::string::npos) {
+      isInnerTracker=true;
+      if (isBarrel) numlayers = 3;
+      // else numlayers = 8; // FIX: adjust for inner tracker endcap 
+    } else if (_DetectorType.find("OuterTracker") != std::string::npos) {
+      isOuterTracker=true;
+      if (isBarrel) numlayers = 3;
+      // else numlayers = 4; // FIX: adjust for outer tracker endcap 
+    } else {
+      std::stringstream err  ; err << " Could not determine sub-detector type for: " << _DetectorType;
+      throw Exception ( err.str() );
+    }
+
+    if (! _FilterByLayer) numlayers = 1;
+    int rangesize = _InputRanges.size();
+    int clustersize = _ClusterSize.size();
+    splitInputRanges = splitVector(_InputRanges, numlayers, rangesize);
+    splitClusterCuts = splitVector(_ClusterSize, numlayers, clustersize);
+    
+
 
   // Make the output track collection
   LCCollectionVec *OutTrackerHitCollection = new LCCollectionVec(LCIO::TRACKERHIT);
@@ -106,7 +140,7 @@ void FilterClusters::processEvent( LCEvent * evt )
   if( InRelationCollection->getTypeName() != lcio::LCIO::LCRELATION )
     { throw EVENT::Exception( "Invalid collection type: " + InRelationCollection->getTypeName() ) ; }
 
-  // Filter
+  // Loop through each event in collection and filter
   for(int i=0; i<InTrackerHitCollection->getNumberOfElements(); ++i) //loop through all hits
     {
       EVENT::TrackerHit *trkhit=static_cast<EVENT::TrackerHit*>(InTrackerHitCollection->getElementAt(i));
@@ -172,34 +206,38 @@ void FilterClusters::processEvent( LCEvent * evt )
         }
       }
       
-      // 
-      for (int i=0; i<_InputRanges.size()-1; ++i) {
-        float min = std::stof(_InputRanges[i]);
-        float max = std::stof(_InputRanges[i+1]);
-        streamlog_out( DEBUG0 ) << "Theta or R range: " << min << ", " << max << std::endl;
-        
-        if (isBarrel){
-          if(incidentTheta > min && incidentTheta <= max && !filter_layer){
-            //streamlog_out( DEBUG0 ) << "theta in range" << std::endl;
-            streamlog_out( DEBUG0 ) << "Cluster size cut off: " << _ClusterSize[i] << std::endl;
-            streamlog_out( DEBUG0 ) << "Current y-cluster size (parallel to beam axis) : " << cluster_size_y << std::endl;
-            if(cluster_size_y < std::stof(_ClusterSize[i])) {
-              streamlog_out( DEBUG0 ) << "Cluster passes cut, hit added to output collection" << std::endl;
-              OutTrackerHitCollection->addElement(trkhit); 
-              OutRelationCollection->addElement(rel); }
-            }
-        }
-        else {
-          if(r > min and r <= max and not filter_layer){
-            streamlog_out( DEBUG0 ) << "Cluster size cut off: " << _ClusterSize[i] << std::endl;
-            streamlog_out( DEBUG0 ) << "Current total cluster size: " << cluster_size_tot << std::endl;
-            if(cluster_size_tot < std::stof(_ClusterSize[i])) {
-              streamlog_out( DEBUG0 ) << "cluster added" << std::endl;
-              OutTrackerHitCollection->addElement(trkhit); 
-              OutRelationCollection->addElement(rel); }
-            }
-        }
-        }
+      for (int layer = 0; layer < numlayers; ++layer){
+        // choose ranges/cuts based on layer
+        thisRanges = splitInputRanges[layer];
+        thisClusterCuts = splitClusterCuts[layer];
+
+        for (int i=0; i<thisRanges.size()-1; ++i) {
+          float min = std::stof(thisRanges[i]);
+          float max = std::stof(thisRanges[i+1]);
+          streamlog_out( DEBUG0 ) << "Theta or R range: " << min << ", " << max << std::endl;
+          
+          if (isBarrel){
+            if(incidentTheta > min && incidentTheta <= max && !filter_layer){
+              streamlog_out( DEBUG0 ) << "Cluster size cut off: " << thisClusterCuts[i] << std::endl;
+              streamlog_out( DEBUG0 ) << "Current y-cluster size (parallel to beam axis) : " << cluster_size_y << std::endl;
+              if(cluster_size_y < std::stof(thisClusterCuts[i])) {
+                streamlog_out( DEBUG0 ) << "Cluster passes cut, hit added to output collection." << std::endl;
+                OutTrackerHitCollection->addElement(trkhit); 
+                OutRelationCollection->addElement(rel); }
+              }
+          }
+          else {
+            if(r > min && r <= max && !filter_layer){
+              streamlog_out( DEBUG0 ) << "Cluster size cut off: " << thisClusterCuts[i] << std::endl;
+              streamlog_out( DEBUG0 ) << "Current total cluster size: " << cluster_size_tot << std::endl;
+              if(cluster_size_tot < std::stof(thisClusterCuts[i])) {
+                streamlog_out( DEBUG0 ) << "Cluster passes cut, hit added to output collection." << std::endl;
+                OutTrackerHitCollection->addElement(trkhit); 
+                OutRelationCollection->addElement(rel); }
+              }
+          }
+          }
+      }
       
       }
   // Save output track collection
@@ -208,12 +246,29 @@ void FilterClusters::processEvent( LCEvent * evt )
 
   // Compare sizes of collections before/after filtering
   int nInTrackerHits = InTrackerHitCollection->getNumberOfElements();
-  streamlog_out(MESSAGE) << "Number of Elements in Input VB Tracker Hits Collection: " << nInTrackerHits <<std::endl;
+  streamlog_out(MESSAGE) << "Number of Elements in Input Tracker Hits Collection: " << nInTrackerHits <<std::endl;
   int nOutTrackerHits = OutTrackerHitCollection->getNumberOfElements();
-  streamlog_out(MESSAGE) << "Number of Elements in Output VB Tracker Hits Collection: " << nOutTrackerHits <<std::endl;
+  streamlog_out(MESSAGE) << "Number of Elements in Output Tracker Hits Collection: " << nOutTrackerHits <<std::endl;
   float retention = nOutTrackerHits/nInTrackerHits * 100;
-  streamlog_out(MESSAGE) << "Percentage of hits retained: " << retention <<std::endl;
+  streamlog_out(MESSAGE) << "Percentage of hits retained: " << retention << std::endl;
 }
+
+// Function to split the input vector into chunks to specify cuts for each layer
+std::vector<std::string>* splitVector(const std::vector<std::string>& input, int numlayers, int originalLength) {
+    std::vector<std::string>* result = new std::vector<std::string>[numlayers];
+    int startIndex = 0;
+    int chunksize = originalLength / numlayers;
+
+    // loop through all layers
+    for (int i = 0; i < numlayers; i++) {
+        for (int j = startIndex; j < startIndex + chunksize && j < input.size(); j++) {
+            result[i].push_back(input[j]);
+        }
+        startIndex += chunksize;
+    }
+    return result;
+}
+
 
 void FilterClusters::end()
 { }
