@@ -17,9 +17,9 @@ TrackerHitResoHists::TrackerHitResoHists()
   h_dy_wide = new TH1F("dy_wide", ";(y_{reco} - y_{truth}) (mm); Hits" , 100, -20, 20);
   h_dz_wide = new TH1F("dz_wide", ";(z_{reco} - z_{truth}) (mm); Hits" , 100, -20, 20);
   // absolute position difference
-  h_dx = new TH1F("dx", ";(x_{reco} - x_{truth}) (mm); Hits" , 100, -0.002, 0.002); 
-  h_dy = new TH1F("dy", ";(y_{reco} - y_{truth}) (mm); Hits" , 100, -0.002, 0.002);
-  h_dz = new TH1F("dz", ";(z_{reco} - z_{truth}) (mm); Hits" , 100, -0.002, 0.002);
+  h_dx = new TH1F("dx", ";(x_{reco} - x_{truth}) (mm); Hits" , 100, -0.03, 0.03); 
+  h_dy = new TH1F("dy", ";(y_{reco} - y_{truth}) (mm); Hits" , 100, -0.03, 0.03);
+  h_dz = new TH1F("dz", ";(z_{reco} - z_{truth}) (mm); Hits" , 100, -0.03, 0.03);
   h_dr = new TH1F("dr", ";(r_{reco} - r_{truth}) (mm); Hits" , 100, -20, 20); // r = sqrt(dx^2+dy^2+dz^2)
   // uncertainties
   h_cov_x  = new TH1F("cov_x" , ";X variance; Hits"                        , 50, 0, 0.01);
@@ -62,6 +62,10 @@ void TrackerHitResoHists::fill(const EVENT::TrackerHit* trkhit, const EVENT::Sim
 
   h_x_pull->Fill((x_reco-x_truth)/sigma_x);
   h_y_pull->Fill((y_reco-y_truth)/sigma_y);
+
+  h_dx_wide->Fill((x_reco-x_truth));
+  h_dy_wide->Fill((y_reco-y_truth));
+  h_dz_wide->Fill((z_reco-z_truth));
 
   h_dx->Fill((x_reco-x_truth));
   h_dy->Fill((y_reco-y_truth));

@@ -31,6 +31,11 @@ namespace TrackPerf
     TH2* h_size_theta_y;
     TH2* h_size_theta_x;
     TH2* h_size_theta_tot;
+    TH2* h_size_r_tot;
+    TH2* h_size_r_tot_0;
+    TH2* h_size_r_tot_1;
+    TH2* h_size_r_tot_2;
+    TH2* h_size_r_tot_3;
     TH2* h_cluster_pos;
     TH2* h_cluster_pos_0;
     TH2* h_cluster_pos_1;

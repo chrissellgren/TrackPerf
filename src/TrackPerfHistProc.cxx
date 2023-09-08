@@ -183,16 +183,27 @@ void TrackPerfHistProc::init()
 
   tree->mkdir("../../clusters_ib" ); tree->cd("../../clusters_ib" );
     tree->mkdir("uncertainty" ); tree->cd("uncertainty" );
-    _uncertainties_ve=std::make_shared<TrackPerf::TrackerHitResoHists>();
+    _uncertainties_ib=std::make_shared<TrackPerf::TrackerHitResoHists>();
     tree->mkdir("../clusters" ); tree->cd("../clusters" );
-    _clusters_ve=std::make_shared<TrackPerf::ClusterHists>();
+    _clusters_ib=std::make_shared<TrackPerf::ClusterHists>();
+
+  tree->mkdir("../../clusters_ie" ); tree->cd("../../clusters_ie" );
+    tree->mkdir("uncertainty" ); tree->cd("uncertainty" );
+    _uncertainties_ie=std::make_shared<TrackPerf::TrackerHitResoHists>();
+    tree->mkdir("../clusters" ); tree->cd("../clusters" );
+    _clusters_ie=std::make_shared<TrackPerf::ClusterHists>();
 
   tree->mkdir("../../clusters_ob" ); tree->cd("../clusters_ob" );
     tree->mkdir("uncertainty" ); tree->cd("uncertainty" );
-    _uncertainties_ve=std::make_shared<TrackPerf::TrackerHitResoHists>();
+    _uncertainties_ob=std::make_shared<TrackPerf::TrackerHitResoHists>();
     tree->mkdir("../clusters" ); tree->cd("../clusters" );
-    _clusters_ve=std::make_shared<TrackPerf::ClusterHists>();
+    _clusters_ob=std::make_shared<TrackPerf::ClusterHists>();
 
+  tree->mkdir("../../clusters_oe" ); tree->cd("../clusters_oe" );
+    tree->mkdir("uncertainty" ); tree->cd("uncertainty" );
+    _uncertainties_oe=std::make_shared<TrackPerf::TrackerHitResoHists>();
+    tree->mkdir("../clusters" ); tree->cd("../clusters" );
+    _clusters_oe=std::make_shared<TrackPerf::ClusterHists>();
 }
 
 void TrackPerfHistProc::processRunHeader( LCRunHeader* /*run*/)
@@ -352,11 +363,11 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
         std::cout << "- Trackhitplane: " << trkhitplane << std::endl;
         continue;
       }
-      //_uncertainties_vb->fill(trkhit,simtrkhit,trkhitplane);
+      _uncertainties_vb->fill(trkhit,simtrkhit,trkhitplane);
     }
 
   // get resolution histograms for vxe hits
-  /* for(int i=0; i<VERelationCollection->getNumberOfElements(); ++i)
+  for(int i=0; i<VERelationCollection->getNumberOfElements(); ++i)
     {
       streamlog_out(DEBUG3) << "Events in VE Relation Collection: " << VERelationCollection->getNumberOfElements() << std::endl;
       EVENT::LCRelation *rel=static_cast<EVENT::LCRelation*>(VERelationCollection->getElementAt(i));
@@ -371,7 +382,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
         continue;
       }
       _uncertainties_ve->fill(trkhit,simtrkhit,trkhitplane);
-    } */
+    }
 
   // resolution hists for itb hits
   for(int i=0; i<IBRelationCollection->getNumberOfElements(); ++i)
@@ -417,6 +428,8 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
       h_trackerhit_timing -> Fill(trkhit->getTime());
       streamlog_out(DEBUG9) << "Filling VB clusters with VB track hits..." << std::endl;
       _clusters_vb->fill(trkhit);}
+
+
 // vertex endcap tracker hits
   streamlog_out(DEBUG3) << "Num Events in VE Hit Collection: " << vetrkhitCol->getNumberOfElements() << std::endl;
   for(int i=0; i<vetrkhitCol->getNumberOfElements(); ++i)
@@ -425,7 +438,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
       h_trackerhit_timing -> Fill(trkhit->getTime());
       streamlog_out(DEBUG9) << "Filling VE clusters with VE track hits..." << std::endl;
       _clusters_ve->fill(trkhit);}
-
+/*
   // inner tracker barrel
   for(int i=0; i<ibtrkhitCol->getNumberOfElements(); ++i)
     {
@@ -456,7 +469,7 @@ void TrackPerfHistProc::processEventTrackerHits( LCEvent * evt)
       const EVENT::TrackerHit *trkhit=static_cast<const EVENT::TrackerHit*>(oetrkhitCol->getElementAt(i));
       h_trackerhit_timing -> Fill(trkhit->getTime());
       streamlog_out(DEBUG9) << "Filling OE clusters with OE track hits..." << std::endl;
-      _clusters_oe->fill(trkhit);}
+      _clusters_oe->fill(trkhit);} */
 }
 
 void TrackPerfHistProc::processEvent( LCEvent * evt )

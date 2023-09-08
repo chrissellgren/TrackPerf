@@ -90,6 +90,22 @@ void FilterClusters::init()
 void FilterClusters::processRunHeader( LCRunHeader* /*run*/)
 { }
 
+// Function to split the input vector into chunks to specify cuts for each layer
+std::vector<std::string>* splitVector(const std::vector<std::string>& input, int numlayers, int originalLength) {
+    std::vector<std::string>* result = new std::vector<std::string>[numlayers];
+    int startIndex = 0;
+    int chunksize = originalLength / numlayers;
+
+    // loop through all layers
+    for (int i = 0; i < numlayers; i++) {
+        for (int j = startIndex; j < startIndex + chunksize && j < input.size(); j++) {
+            result[i].push_back(input[j]);
+        }
+        startIndex += chunksize;
+    }
+    return result;
+}
+
 void FilterClusters::processEvent( LCEvent * evt )
 {
   // Determine if handling endcap or barrel
@@ -104,27 +120,25 @@ void FilterClusters::processEvent( LCEvent * evt )
   if (_DetectorType.find("Vertex") != std::string::npos) {
       isVertex=true;
       numlayers = 4;
-    } else if (_DetectorType.find("InnerTracker") != std::string::npos) {
-      isInnerTracker=true;
-      if (isBarrel) numlayers = 3;
-      // else numlayers = 8; // FIX: adjust for inner tracker endcap 
-    } else if (_DetectorType.find("OuterTracker") != std::string::npos) {
-      isOuterTracker=true;
-      if (isBarrel) numlayers = 3;
-      // else numlayers = 4; // FIX: adjust for outer tracker endcap 
-    } else {
-      std::stringstream err  ; err << " Could not determine sub-detector type for: " << _DetectorType;
-      throw Exception ( err.str() );
-    }
+  } else if (_DetectorType.find("InnerTracker") != std::string::npos) {
+    isInnerTracker=true;
+    if (isBarrel) numlayers = 3;
+    // else numlayers = 8; // FIX: adjust for inner tracker endcap 
+  } else if (_DetectorType.find("OuterTracker") != std::string::npos) {
+    isOuterTracker=true;
+    if (isBarrel) numlayers = 3;
+    // else numlayers = 4; // FIX: adjust for outer tracker endcap 
+  } else {
+    std::stringstream err  ; err << " Could not determine sub-detector type for: " << _DetectorType;
+    throw Exception ( err.str() );
+  }
 
-    if (! _FilterByLayer) numlayers = 1;
-    int rangesize = _InputRanges.size();
-    int clustersize = _ClusterSize.size();
-    splitInputRanges = splitVector(_InputRanges, numlayers, rangesize);
-    splitClusterCuts = splitVector(_ClusterSize, numlayers, clustersize);
+  if (! _FilterByLayer) numlayers = 1;
+  int rangesize = _InputRanges.size();
+  int clustersize = _ClusterSize.size();
+  splitInputRanges = splitVector(_InputRanges, numlayers, rangesize);
+  splitClusterCuts = splitVector(_ClusterSize, numlayers, clustersize);
     
-
-
   // Make the output track collection
   LCCollectionVec *OutTrackerHitCollection = new LCCollectionVec(LCIO::TRACKERHIT);
   OutTrackerHitCollection->setSubset(true);
@@ -251,22 +265,6 @@ void FilterClusters::processEvent( LCEvent * evt )
   streamlog_out(MESSAGE) << "Number of Elements in Output Tracker Hits Collection: " << nOutTrackerHits <<std::endl;
   float retention = nOutTrackerHits/nInTrackerHits * 100;
   streamlog_out(MESSAGE) << "Percentage of hits retained: " << retention << std::endl;
-}
-
-// Function to split the input vector into chunks to specify cuts for each layer
-std::vector<std::string>* splitVector(const std::vector<std::string>& input, int numlayers, int originalLength) {
-    std::vector<std::string>* result = new std::vector<std::string>[numlayers];
-    int startIndex = 0;
-    int chunksize = originalLength / numlayers;
-
-    // loop through all layers
-    for (int i = 0; i < numlayers; i++) {
-        for (int j = startIndex; j < startIndex + chunksize && j < input.size(); j++) {
-            result[i].push_back(input[j]);
-        }
-        startIndex += chunksize;
-    }
-    return result;
 }
 
 

@@ -95,7 +95,9 @@ private:
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_vb;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ve;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ib;
+  std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ie;
   std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_ob;
+  std::shared_ptr<TrackPerf::TrackerHitResoHists> _uncertainties_oe;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_vb;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_ve;
   std::shared_ptr<TrackPerf::ClusterHists> _clusters_ib;

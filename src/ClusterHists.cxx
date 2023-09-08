@@ -11,9 +11,14 @@ using namespace TrackPerf;
 
 ClusterHists::ClusterHists()
 {
-  h_size_theta_y    = new TH2F("cluster_size_vs_theta_y" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
-  h_size_theta_x    = new TH2F("cluster_size_vs_theta_x" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
-  h_size_theta_tot  = new TH2F("cluster_size_vs_theta_tot" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  10,  -0.5,  10.5  );
+  h_size_theta_y    = new TH2F("cluster_size_vs_theta_y" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  11,  -0.5,  10.5  );
+  h_size_theta_x    = new TH2F("cluster_size_vs_theta_x" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  11,  -0.5,  10.5  );
+  h_size_theta_tot  = new TH2F("cluster_size_vs_theta_tot" , ";Cluster #theta; Cluster size" , 100, 0,  3.14,  11,  -0.5,  10.5  );
+  h_size_r_tot      = new TH2F("cluster_size_vs_R_tot" , ";Cluster R (x^2+y^2)^(1/2) (mm); Cluster size" , 100, 20,  120,  11,  -0.5,  10.5  );
+  h_size_r_tot_0     = new TH2F("cluster_size_vs_R_tot_0" , ";Cluster R (x^2+y^2)^(1/2) (mm); Cluster size" , 100, 20,  120,  11,  -0.5,  10.5  );
+  h_size_r_tot_1     = new TH2F("cluster_size_vs_R_tot_1" , ";Cluster R (x^2+y^2)^(1/2) (mm); Cluster size" , 100, 20,  120,  11,  -0.5,  10.5  );
+  h_size_r_tot_2     = new TH2F("cluster_size_vs_R_tot_2" , ";Cluster R (x^2+y^2)^(1/2) (mm); Cluster size" , 100, 20,  120,  11,  -0.5,  10.5  );
+  h_size_r_tot_3     = new TH2F("cluster_size_vs_R_tot_3" , ";Cluster R (x^2+y^2)^(1/2) (mm); Cluster size" , 100, 20,  120,  11,  -0.5,  10.5  );
   h_cluster_pos   = new TH2F("cluster_position"      , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_0 = new TH2F("cluster_position_0"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
   h_cluster_pos_1 = new TH2F("cluster_position_1"    , ";z; r"                         , 100, -500, 500, 100, 0, 200);
@@ -124,6 +129,7 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   h_size_theta_y->Fill(incidentTheta, cluster_size_y);
   h_size_theta_x->Fill(incidentTheta, cluster_size_x);
   h_size_theta_tot->Fill(incidentTheta, cluster_size_tot);
+  h_size_r_tot->Fill(r, cluster_size_tot);
 
   h_theta->Fill(incidentTheta);
   h_cluster_pos->Fill(z,r);
@@ -158,14 +164,18 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   // Fill based on which double layer region was hit
   if(layerID==0 or layerID==1){
     h_cluster_pos_0->Fill(z,r);
+    h_size_r_tot_0->Fill(r, cluster_size_tot);
     }
   if(layerID==2 or layerID==3){
     h_cluster_pos_1->Fill(z,r);
+    h_size_r_tot_1->Fill(r, cluster_size_tot);
     }
   if(layerID==4 or layerID==5){
     h_cluster_pos_2->Fill(z,r);
+    h_size_r_tot_2->Fill(r, cluster_size_tot);
     }
   if(layerID==6 or layerID==7){
     h_cluster_pos_3->Fill(z,r);
+    h_size_r_tot_3->Fill(r, cluster_size_tot);
     }   
 }
