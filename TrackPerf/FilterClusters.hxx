@@ -33,9 +33,6 @@ public:
     */
    virtual void processEvent(LCEvent* evt) ;
 
-   // Function to split long input vector for input ranges, cluster cuts into chunks
-   std::vector<std::vector<std::string>> splitVector(const std::vector<std::string>&, int, int);
-
    /** Called after data processing for clean up.
     */
    virtual void end() ;
@@ -74,8 +71,8 @@ private:
    std::vector<std::vector<std::string>> splitClusterCuts;
 
    // sub-split vector for when looping over all layers
-   std::vector<std::string> thisRanges;
-   std::vector<std::string> thisClusterCuts;
+   //std::vector<std::string> thisRanges;
+   //std::vector<std::string> thisClusterCuts;
 
 
 };
