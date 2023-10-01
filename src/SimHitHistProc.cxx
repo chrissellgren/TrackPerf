@@ -130,7 +130,7 @@ void SimHitHistProc::init()
   h_z   = new TH1F("z  " , ";z   ; Num Hits" , numbins_all,  zmin_all, zmax_all);
   h_r   = new TH1F("r  " , ";r   ; Num Hits" , numbins_all,  rmin_all, rmax_all);
   h_t   = new TH1F("t  " , "Sim Hits from VXB and ITB;t   ; Num Hits" , numbins_all,  -2, 10); // ns
-  h_z_r = new TH2F("z_r" , ";z_r ; r"        , numbins_all,  zmin_all, zmax_all, numbins_all, rmin_all, rmax_all);
+  h_z_r = new TH2F("z_r" , ";z_r ; r"        , numbins_all/10,  zmin_all, zmax_all, numbins_all/10, rmin_all, rmax_all);
   h_x_y = new TH2F("x_y" , ";x_y ; r"        , numbins_all, -rmax_all, rmax_all, numbins_all, -rmax_all, rmax_all);
 
   // vertex histograms
@@ -145,7 +145,7 @@ void SimHitHistProc::init()
   h_z_vx   = new TH1F("z_vx  " , ";z   ; Num Hits" , numbins_vx,  zmin_vx, zmax_vx);
   h_r_vx   = new TH1F("r_vx  " , ";r   ; Num Hits" , numbins_vx,  rmin_vx, rmax_vx);
   h_t_vx   = new TH1F("t  " , ";t   ; Num Hits" , numbins_all,  -2, 10); // ns
-  h_z_r_vx = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_vx,  zmin_vx, zmax_vx, numbins_vx, rmin_vx, rmax_vx);
+  h_z_r_vx = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_vx/10,  zmin_vx, zmax_vx, numbins_vx/10, rmin_vx, rmax_vx);
   h_x_y_vx = new TH2F("x_y_vx" , ";x_y ; r"        , numbins_vx, -rmax_vx, rmax_vx, numbins_vx, -rmax_vx, rmax_vx);
   h_t_tracker_vxb = new TH1F("t  " , ";t   ; Num Hits" , numbins_all,  -2, 10); // ns
 
@@ -161,7 +161,7 @@ void SimHitHistProc::init()
   h_z_it   = new TH1F("z_vx  " , ";z   ; Num Hits" , numbins_IT,  zmin_IT, zmax_IT);
   h_r_it   = new TH1F("r_vx  " , ";r   ; Num Hits" , numbins_IT,  rmin_IT, rmax_IT);
   h_t_it   = new TH1F("t  " , ";t   ; Num Hits" , numbins_all,  -2, 10); // ns
-  h_z_r_it = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_IT,  zmin_IT, zmax_IT, numbins_IT, rmin_IT, rmax_IT);
+  h_z_r_it = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_IT/10,  zmin_IT, zmax_IT, numbins_IT/10, rmin_IT, rmax_IT);
   h_x_y_it = new TH2F("x_y_vx" , ";x_y ; r"        , numbins_IT, -rmax_IT, rmax_IT, numbins_IT, -rmax_IT, rmax_IT);
 
   // OT histograms
@@ -176,7 +176,7 @@ void SimHitHistProc::init()
   h_z_ot   = new TH1F("z_vx  " , ";z   ; Num Hits" , numbins_OT,  zmin_OT, zmax_OT);
   h_r_ot   = new TH1F("r_vx  " , ";r   ; Num Hits" , numbins_OT,  rmin_OT, rmax_OT);
   h_t_ot   = new TH1F("t  " , ";t   ; Num Hits" , numbins_all,  -2, 10); // ns
-  h_z_r_ot = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_OT,  zmin_OT, zmax_OT, numbins_OT, rmin_OT, rmax_OT);
+  h_z_r_ot = new TH2F("z_r_vx" , ";z_r ; r"        , numbins_OT/10,  zmin_OT, zmax_OT, numbins_OT/10, rmin_OT, rmax_OT);
   h_x_y_ot = new TH2F("x_y_vx" , ";x_y ; r"        , numbins_OT, -rmax_OT, rmax_OT, numbins_OT, -rmax_OT, rmax_OT);
   }
 
@@ -297,4 +297,3 @@ void SimHitHistProc::fill(const EVENT::SimTrackerHit* simhit, const std::string 
         h_t->Fill(t); 
     }
 }
-
