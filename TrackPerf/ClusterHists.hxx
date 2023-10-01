@@ -44,6 +44,8 @@ namespace TrackPerf
     TH1* hits_by_layer;
     TH1* h_theta;
     TH1* h_edep;
+    TH2* h_edep_r;
+    TH2* h_edep_cluster;
     /*TH1* h_edep_0deg;
     TH1* h_edep_90deg; */
     // positions

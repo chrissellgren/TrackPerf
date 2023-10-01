@@ -27,6 +27,8 @@ ClusterHists::ClusterHists()
   hits_by_layer   = new TH1F("numhits_by_layer"      , ";Layer Index; Number of Clusters",8,0,8);
   h_theta         = new TH1F("theta"                 , ";Theta;Number of Clusters"       ,100,0,3.15);
   h_edep     = new TH1F("edep"          , ";Energy Deposited (GeV);Clusters" ,100,0,0.0005);
+  h_edep_r   = new TH2F("edep_vs_r" , ";Cluster R (x^2+y^2)^(1/2) (mm); Energy Deposited (GeV)" , 100, 20,  120,  100,  0,  0.002 );
+  h_edep_cluster   = new TH2F("edep_vs_cluster size" , "; Energy Deposited (GeV); Total Cluster Size" ,100,  0,  0.002, 100, -0.5, 99.5 );
 
   // Create position histograms for tracker hits
   int numbins_all = 1000;
@@ -150,6 +152,8 @@ void ClusterHists::fill(const EVENT::TrackerHit* trkhit)
   h_x_y_vx->Fill(x,y);
 
   h_edep->Fill(EDep);
+  h_edep_r->Fill(r,EDep);
+  h_edep_cluster->Fill(EDep,cluster_size_tot);
 
 
   // Fill energy deposition histograms based on angle
